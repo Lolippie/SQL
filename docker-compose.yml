@@ -1,0 +1,44 @@
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: chronicle_db-pg:latest
+    container_name: chronicle_db-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mj
+      POSTGRES_PASSWORD: moi
+      POSTGRES_DB: chronicle
+    ports:
+      - "5432:5432"
+    volumes:
+      # PostgreSQL 18+ : monter sur /var/lib/postgresql (sans /data)
+      # Le sous-dossier versionné est créé automatiquement par l'image
+      - pg_data:/var/lib/postgresql
+      # Tous les fichiers du dossier init/ sont disponibles dans le conteneur
+      # Seul 00_init.sql est exécuté automatiquement (point d'entrée unique)
+      # Les autres sont appelés via \i depuis 00_init.sql
+      - ./init:/docker-entrypoint-initdb.d:ro
+      - ./scripts:/scripts:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mj -d chronicle"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: chronicle_db-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@cours.fr
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5433:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pg_data:
