@@ -1,4 +1,52 @@
-Voici la section Performance pour ton rapport d'audit :
+# Rapport d'audit de qualité des données
+
+## Résumé exécutif
+
+Cet audit avait pour objectif de repérer des incohérences dans la base de données du jeu. Trois problèmes principaux ont été analysés : les personnages ayant une valeur `gold` à `NULL`, les doublons de noms de personnages et les progressions de quêtes ne respectant pas leurs prérequis.
+
+Au total, **44 personnages** avaient un `gold` nul, **1 doublon métier** a été identifié (créé volontairement pour tester la requête) et **200 progressions** ne respectaient pas les prérequis, dont **79 quêtes** déjà marquées comme terminées.
+
+Les valeurs `NULL` ont été corrigées et les progressions incohérentes ont été mises à jour afin de rendre les données plus cohérentes.
+
+---
+
+## Anomalies détectées
+
+### 1.1 Valeurs `NULL` dans `gold`
+
+**44 personnages** avaient une valeur `NULL` dans la colonne `gold`.
+
+Comme cette colonne représente une quantité d'or, il est plus logique d'utiliser la valeur **0** qu'une valeur inconnue. Une mise à jour a donc remplacé tous les `NULL` par `0`.
+
+### 1.2 Doublons de noms
+
+La recherche de doublons a été effectuée en ignorant les différences de casse et les espaces inutiles.
+
+Aucun doublon n'était présent dans les données initiales, j'en ai donc créé un afin de vérifier que ma requête fonctionnait correctement. J'ai ensuite vérifié si ces personnages étaient liés à une guilde : l'un appartenait à une guilde, l'autre non.
+
+Je n'ai pas appliqué de correction automatique, car deux noms similaires ne correspondent pas forcément au même personnage.
+
+### 1.3 Progressions de quêtes incohérentes
+
+J'ai trouvé **200 progressions** où un personnage avait commencé une quête sans avoir terminé son prérequis. Parmi elles, **79** étaient déjà au statut **`terminee`**, ce qui est le cas le plus problématique.
+
+Pour corriger ces incohérences, j'ai remis les quêtes prérequises au statut **`en_cours`** lorsqu'elles étaient absentes ou incomplètes, puis j'ai passé les quêtes concernées au statut **`abandonnee`**.
+
+---
+
+## Recommandations
+
+Pour éviter que ces problèmes ne se reproduisent, je recommande :
+
+- ajouter une contrainte `NOT NULL DEFAULT 0` sur la colonne `gold` ;
+- créer un index unique sur le nom normalisé des personnages afin d'empêcher les doublons ;
+- mettre en place un contrôle (trigger ou vérification côté application) pour empêcher la validation d'une quête si son prérequis n'est pas terminé ;
+
+---
+
+## Conclusion
+
+Cet audit a permis d'identifier et de corriger plusieurs incohérences dans la base de données. Les principales anomalies concernaient les valeurs `NULL` et les progressions de quêtes. Les recommandations proposées permettront de limiter l'apparition de ces problèmes et d'améliorer la fiabilité des données.
 
 ---
 
