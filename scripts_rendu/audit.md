@@ -22,7 +22,18 @@ Comme cette colonne représente une quantité d'or, il est plus logique d'utilis
 
 La recherche de doublons a été effectuée en ignorant les différences de casse et les espaces inutiles.
 
-Aucun doublon n'était présent dans les données initiales, j'en ai donc créé un afin de vérifier que ma requête fonctionnait correctement. J'ai ensuite vérifié si ces personnages étaient liés à une guilde : l'un appartenait à une guilde, l'autre non.
+Aucun doublon n'était présent dans les données initiales, j'en ai donc créé un afin de vérifier que ma requête fonctionnait correctement. 
+
+| id | nom| nom_normalise |
+|---|---|---|
+| 538 | Cyran _dup | cyran_dup |
+| 555 | Cyran _Dup | cyran_dup |
+
+J'ai ensuite vérifié si ces personnages étaient liés à une guilde : l'un appartenait à une guilde, l'autre non.
+
+| nom_guilde | nom_personnage| id |
+|---|---|---|
+| Pacte des Mystiques | Cyran _dup | 538 |
 
 Je n'ai pas appliqué de correction automatique, car deux noms similaires ne correspondent pas forcément au même personnage.
 

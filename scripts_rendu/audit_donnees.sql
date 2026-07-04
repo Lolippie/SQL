@@ -6,7 +6,7 @@ FROM session s
 JOIN joueur j ON s.joueur_id = j.id 
 WHERE s.fin IS NOT NULL
 GROUP BY j.id )
-SELECT p.nom, p.niveau, c.nom, nombre_sessions_terminees.nombres_sessions as nombre_sessions_terminees, j.id
+SELECT p.nom, p.niveau, c.nom as nom_classe, nombre_sessions_terminees.nombres_sessions as nombre_sessions_terminees, j.id
 FROM personnage p 
 JOIN classe c ON p.classe_id = c.id
 JOIN joueur j ON j.id = p.joueur_id
@@ -17,7 +17,7 @@ WHERE p.gold IS NULL
 
 -- 2. Combien y en a-t-il ? 
 
--- On en retrouve 44
+-- On en retrouve 44 
 
 -- 3. Proposez et exécutez un UPDATE pour corriger ce problème en remplaçant les NULL par 0.
 WITH nombre_sessions_terminees AS (
@@ -50,13 +50,21 @@ WHERE id IN (
 
 -- 1. Écrivez une requête qui détecte les noms en doublon métier. Affichez le nom normalisé, le nombre d’occurrences
 -- et les IDs concernés.
+WITH doublons AS (
+    SELECT
+        LOWER(TRIM(REPLACE(nom, ' _', '_'))) AS nom_normalise
+    FROM personnage
+    GROUP BY LOWER(TRIM(REPLACE(nom, ' _', '_')))
+    HAVING COUNT(*) > 1
+)
 SELECT
-  p.id,
-  LOWER(TRIM(REPLACE(nom, ' _', '_'))) AS nom_normalise,
-  COUNT(*) AS occurence
-FROM personnage
-GROUP BY LOWER(TRIM(REPLACE(nom, ' _', '_')))
-HAVING COUNT(*) > 1;
+    p.id,
+    p.nom,
+    LOWER(TRIM(REPLACE(p.nom, ' _', '_'))) AS nom_normalise
+FROM personnage p
+JOIN doublons d
+    ON LOWER(TRIM(REPLACE(p.nom, ' _', '_'))) = d.nom_normalise
+ORDER BY nom_normalise, p.id;
 2. Combien de doublons métier avez-vous identifiés ?
 -- n'en ayant eu aucun, j'ai executé les commandes suivantes pour créer au moins un cas
 SELECT p.nom, g.nom
@@ -83,7 +91,7 @@ WHERE  LOWER(TRIM(REPLACE(nom, ' _', '_'))) IN (
 )
 ORDER BY nom_normalise
 )
-SELECT g.nom, p.nom, p.id
+SELECT g.nom as nom_guilde, p.nom as nom_personnage, p.id
 FROM personnage p
 JOIN doublons_metier dm ON p.id = dm.id
 JOIN guilde g ON g.id = p.guilde_id
@@ -123,7 +131,7 @@ WHERE e.statut_prerequis IS NULL
    OR e.statut_prerequis <> 'terminee'
 -- 2. Combien de violations avez-vous trouvé ?
 
--- Il y a 200 violations 
+-- Il y a 200 violations trouvées 
 
 -- 3. Parmi ces violations, combien concernent des progressions au statut 'terminee' (cas les plus graves) ?
 WITH progression_prerequis AS (
